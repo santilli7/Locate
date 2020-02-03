@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+
+        android:layout_gravity="center_horizontal"
+        app:boxBackgroundColor="@color/cast_expanded_controller_text_color"
+        app:boxBackgroundMode="outline"
+        app:boxStrokeColor="@color/colorPrimary"
+        app:hintEnabled="true">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/spinnerEmergency"
+                android:layout_width="150dp"
+                android:layout_height="40dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="40dp"
+                android:entries="@array/priority"
+                android:gravity="center_horizontal"
+                android:spinnerMode="dialog" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/PositionTheme"
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/il_latitude"
+                android:layout_gravity="center_horizontal"
+                android:layout_below="@id/spinnerEmergency"
+                app:boxBackgroundColor="@color/cast_expanded_controller_text_color"
+                app:boxBackgroundMode="outline"
+                app:hintEnabled="true">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_latitude"
+                    style="@style/PositionTheme"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/spinnerEmergency"
+                    android:layout_marginBottom="30dp"
+                    android:fontFamily="@font/roboto_medium"
+                    android:hint="@string/et_latitude"
+                    android:inputType="numberDecimal"
+                    android:textAlignment="textStart"
+                    android:textSize="18sp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/il_longitude"
+                style="@style/PositionTheme"
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/il_latitude"
+                android:layout_gravity="center_horizontal"
+                app:boxBackgroundColor="@color/cast_expanded_controller_text_color"
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="@color/colorPrimary"
+                app:helperTextEnabled="false"
+                app:hintAnimationEnabled="true"
+                app:hintEnabled="true">
+
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_longitude"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/PositionTheme"
+                    android:layout_marginBottom="30dp"
+                    android:fontFamily="@font/roboto_medium"
+                    android:hint="@string/et_longitude"
+                    android:inputType="numberDecimal"
+                    android:textSize="18sp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInvia"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/il_longitude"
+                android:layout_alignRight="@id/il_longitude"
+                android:text="Invia"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+        </RelativeLayout>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</FrameLayout>

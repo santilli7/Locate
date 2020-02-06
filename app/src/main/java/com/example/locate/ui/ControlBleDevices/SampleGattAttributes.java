@@ -26,6 +26,7 @@ public class SampleGattAttributes {
     public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
     public static String HM_10_CONF = "0000ffe0-0000-1000-8000-00805f9b34fb";
     public static String HM_RX_TX = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    public static String HM_TX = "0000ffe2-0000-1000-8000-00805f9b34fb";
 
     static {
         // Sample Services.
@@ -33,6 +34,7 @@ public class SampleGattAttributes {
         attributes.put("00001800-0000-1000-8000-00805f9b34fb", "Device Information Service");
         // Sample Characteristics.
         attributes.put(HM_RX_TX, "RX/TX data");
+        attributes.put(HM_TX, "TX Data");
         attributes.put("00002a29-0000-1000-8000-00805f9b34fb", "Manufacturer Name String");
     }
 

@@ -69,7 +69,9 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
 
         if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(getContext(), R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            getActivity().finish();
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
         }
         //navController = Navigation.findNavController(getContext());
 
@@ -82,7 +84,9 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
         // Checks if Bluetooth is supported on the device.
         if (bluetoothAdapter == null) {
             Toast.makeText(getContext(), R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
-            getActivity().finish();
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
         }
         return root;
     }
@@ -144,7 +148,9 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // User chose not to enable Bluetooth.
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-            getActivity().finish();
+            if (getActivity() != null) {
+                getActivity().finish();
+            }
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -165,7 +171,9 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
                 public void run() {
                     mScanning = false;
                     bluetoothAdapter.stopLeScan(mLeScanCallback);
-                    getActivity().invalidateOptionsMenu();
+                    if (getActivity() != null) {
+                        getActivity().invalidateOptionsMenu();
+                    }
                 }
             }, SCAN_PERIOD);
 
@@ -175,7 +183,9 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
             mScanning = false;
             bluetoothAdapter.stopLeScan(mLeScanCallback);
         }
-        getActivity().invalidateOptionsMenu();
+        if (getActivity() != null) {
+            getActivity().invalidateOptionsMenu();
+        }
     }
 
     private BluetoothAdapter.LeScanCallback mLeScanCallback =
@@ -183,13 +193,15 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
 
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLeDeviceListAdapter.addDevice(device);
-                            mLeDeviceListAdapter.notifyDataSetChanged();
-                        }
-                    });
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mLeDeviceListAdapter.addDevice(device);
+                                mLeDeviceListAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
                 }
             };
 
@@ -200,7 +212,6 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
         System.out.println("NavController :" + Navigation.findNavController(view));
         posBundle.putString("name", device.getName());
         posBundle.putString("address", device.getAddress());
-        Navigation.findNavController(getView()).navigate(R.id.action_nav_search_ble_devices_to_nav_control_ble_devices, posBundle);
         //final Intent intent = new Intent(this, DeviceControlActivity.class);
         //intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.getName());
         //intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
@@ -208,6 +219,8 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
             bluetoothAdapter.stopLeScan(mLeScanCallback);
             mScanning = false;
         }
+        Navigation.findNavController(getView()).navigate(R.id.action_nav_search_ble_devices_to_nav_control_ble_devices, posBundle);
+
         //startActivity(intent);
     }
 }

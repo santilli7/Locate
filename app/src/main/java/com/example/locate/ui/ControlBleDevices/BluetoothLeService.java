@@ -16,6 +16,10 @@
 
 package com.example.locate.ui.ControlBleDevices;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -28,12 +32,23 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Binder;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.example.locate.MainActivity;
+import com.example.locate.R;
+
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.navigation.NavDeepLinkBuilder;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -65,6 +80,8 @@ public class BluetoothLeService extends Service {
 
     public final static UUID UUID_HM_RX_TX =
             UUID.fromString(SampleGattAttributes.HM_RX_TX);
+    public final static UUID UUID_HM_TX =
+            UUID.fromString(SampleGattAttributes.HM_TX);
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -98,6 +115,7 @@ public class BluetoothLeService extends Service {
             }
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
@@ -107,33 +125,72 @@ public class BluetoothLeService extends Service {
             }
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
     };
+    private Bundle posBundle;
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
         sendBroadcast(intent);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
 
         // For all other profiles, writes the data formatted in HEX.
         final byte[] data = characteristic.getValue();
         Log.i(TAG, "data" + characteristic.getValue());
-
         if (data != null && data.length > 0) {
             final StringBuilder stringBuilder = new StringBuilder(data.length);
-            for (byte byteChar : data)
-                stringBuilder.append(String.format("%02X ", byteChar));
-            Log.d(TAG, String.format("%s", new String(data)));
+            //for (byte byteChar : data)
+            //stringBuilder.append(String.format("%02X ", byteChar));
+            //Log.d(TAG, String.format("%s", new String(data)));
+            String s = new String(data);
+            String u = Base64.getEncoder().encodeToString(data);
+            System.out.println("Valoreeeeee " + s);
+            System.out.println("Valoreeeeee " + u);
+
             // getting cut off when longer, need to push on new line, 0A
             intent.putExtra(EXTRA_DATA, String.format("%s", new String(data)));
+            System.out.println("Notification");
 
+            posBundle = new Bundle();
+            posBundle.putString("position", new String(data));
+            CharSequence channelName = "My Channel";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+
+            NotificationChannel notificationChannel = new NotificationChannel("default", channelName, importance);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setVibrationPattern(new long[]{1000, 2000});
+
+            NotificationManager notificationManager = (NotificationManager) this.getSystemService(Service.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(notificationChannel);
+
+            NavDeepLinkBuilder navDeepLinkBuilder = new NavDeepLinkBuilder(this);
+            PendingIntent pendingIntent = navDeepLinkBuilder
+                    .setComponentName(MainActivity.class)
+                    .setGraph(R.navigation.mobile_navigation)
+                    .setDestination(R.id.nav_emergency)
+                    .setArguments(posBundle)
+                    .createPendingIntent();
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default");
+            builder.setContentTitle(getString(R.string.app_name));
+            builder.setContentText(getString(R.string.emerencyNotification));
+            builder.setSmallIcon(R.drawable.place2);
+            builder.setContentIntent(pendingIntent);
+            Notification notification = builder.build();
+
+
+            notificationManager.notify(0, notification);
+            System.out.println("Notification" + notification);
         }
         sendBroadcast(intent);
     }
@@ -275,13 +332,14 @@ public class BluetoothLeService extends Service {
      *
      * @param characteristic The characteristic to write to
      */
-    public void writeCharacteristic(BluetoothGattCharacteristic characteristic) {
+    public boolean writeCharacteristic(BluetoothGattCharacteristic characteristic) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
-            return;
+            return false;
         }
 
-        mBluetoothGatt.writeCharacteristic(characteristic);
+        boolean status = mBluetoothGatt.writeCharacteristic(characteristic);
+        return status;
     }
 
     /**

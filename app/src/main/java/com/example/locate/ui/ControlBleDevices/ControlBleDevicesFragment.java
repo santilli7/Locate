@@ -61,6 +61,7 @@ public class ControlBleDevicesFragment extends Fragment {
     private BluetoothGattCharacteristic characteristicRX;
     private MaterialButton btnInvia;
     private LatLng argument;
+    private boolean writestatus;
 
 
     public final static UUID HM_RX_TX =
@@ -89,6 +90,8 @@ public class ControlBleDevicesFragment extends Fragment {
         public void onServiceDisconnected(ComponentName componentName) {
             mBluetoothLeService = null;
         }
+
+
     };
 
     // Handles various events fired by the Service.
@@ -113,6 +116,8 @@ public class ControlBleDevicesFragment extends Fragment {
                 // Show all the supported services and characteristics on the user interface.
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
             }
+
+
         }
     };
 
@@ -141,7 +146,9 @@ public class ControlBleDevicesFragment extends Fragment {
         btnInvia.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendDataToBLE(argument);
+                if (mConnected) {
+                    sendDataToBLE(argument);
+                }
             }
         });
         return v;
@@ -154,16 +161,23 @@ public class ControlBleDevicesFragment extends Fragment {
         System.out.println(String.valueOf(position.latitude).getBytes() + "Latitude");
         String latstr = String.valueOf(position.latitude);
         String lngstr = String.valueOf(position.longitude);
-        final byte[] tx = latstr.getBytes();
-        final byte[] tx1 = lngstr.getBytes();
+        String positionstr = latstr + lngstr;
+        final byte[] tx = positionstr.getBytes();
+        //final byte[] tx1 = lngstr.getBytes();
         if (mConnected) {
-            characteristicTX.setValue(latstr + lngstr);
-            //characteristicTx1.setValue(tx1);
-            mBluetoothLeService.writeCharacteristic(characteristicTX);
-            //mBluetoothLeService.writeCharacteristic(characteristicTx1);
-            mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);
-        }
+            if (characteristicTX != null) {
+                characteristicTX.setValue(positionstr);
+                //characteristicTx1.setValue(tx1);
+                writestatus = mBluetoothLeService.writeCharacteristic(characteristicTX);
+                //mBluetoothLeService.writeCharacteristic(characteristicTx1);
+                mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);
+            }
 
+        }
+        //if(writestatus){
+        //  mBluetoothLeService.disconnect();
+        // Navigation.findNavController(getView()).navigate(R.id.action_nav_control_ble_devices_to_nav_home);
+        //}
     }
 
     @Override
@@ -178,6 +192,7 @@ public class ControlBleDevicesFragment extends Fragment {
         }
         super.onCreateOptionsMenu(menu, inflater);
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -252,7 +267,7 @@ public class ControlBleDevicesFragment extends Fragment {
             gattServiceData.add(currentServiceData);
 
             // get characteristic when UUID matches RX/TX UUID
-            characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+            characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_TX);
             //characteristicTx1 = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
             characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
         }

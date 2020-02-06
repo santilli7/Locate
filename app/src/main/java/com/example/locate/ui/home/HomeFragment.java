@@ -133,7 +133,9 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mapview.onDestroy();
+        if (mapview != null) {
+            mapview.onDestroy();
+        }
     }
 
     @Override

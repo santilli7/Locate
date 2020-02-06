@@ -48,4 +48,5 @@
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
     <string name="is_serial">Serial Present:</string>
+    <string name="emerencyNotification">C\'è un emergenza</string>
 </resources>

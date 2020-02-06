@@ -38,6 +38,9 @@
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />"
+        <service
+            android:name=".ui.ControlBleDevices.BluetoothLeService"
+            android:enabled="true" />
         <meta-data
             android:name="com.google.android.gms.maps.API_OPTIONS"
             android:value="AIzaSyBYq5iifwR3w3_eH_garWd2Rz1RS6WxxPM" />

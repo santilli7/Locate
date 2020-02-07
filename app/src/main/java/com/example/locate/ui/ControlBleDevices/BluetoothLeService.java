@@ -41,6 +41,7 @@ import android.util.Log;
 
 import com.example.locate.MainActivity;
 import com.example.locate.R;
+import com.example.locate.ui.home.BLEState;
 
 import java.util.Base64;
 import java.util.List;
@@ -62,6 +63,8 @@ public class BluetoothLeService extends Service {
     private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;
+    private static BLEState state;
+    private static BluetoothLeService instance;
 
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
@@ -195,22 +198,42 @@ public class BluetoothLeService extends Service {
         sendBroadcast(intent);
     }
 
+    public static BLEState getState() {
+        return null != state ? state : BLEState.STOPPED;
+    }
+
+    public static void setState(BLEState blestate) {
+        state = blestate;
+    }
+
+    public static BluetoothLeService getInstance() {
+        return instance;
+    }
+
     public class LocalBinder extends Binder {
-        BluetoothLeService getService() {
+        public BluetoothLeService getService() {
             return BluetoothLeService.this;
         }
     }
 
+
     @Override
     public IBinder onBind(Intent intent) {
+
+        System.out.println("Bind");
+        instance = this;
+        state = BLEState.RUNNING;
         return mBinder;
     }
+
 
     @Override
     public boolean onUnbind(Intent intent) {
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
+        System.out.println("Unbind");
+        state = BLEState.STOPPED;
         close();
         return super.onUnbind(intent);
     }

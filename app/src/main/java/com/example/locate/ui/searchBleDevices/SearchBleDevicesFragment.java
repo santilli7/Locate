@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.example.locate.MainActivity;
 import com.example.locate.R;
+import com.example.locate.ui.ControlBleDevices.BluetoothLeService;
 import com.google.android.gms.maps.model.LatLng;
 
 import androidx.annotation.NonNull;
@@ -210,6 +211,7 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
         final BluetoothDevice device = (BluetoothDevice) mLeDeviceListAdapter.getDevice(position);
         if (device == null) return;
         System.out.println("NavController :" + Navigation.findNavController(view));
+        BluetoothLeService mble = (BluetoothLeService) getArguments().get("service");
         posBundle.putString("name", device.getName());
         posBundle.putString("address", device.getAddress());
         //final Intent intent = new Intent(this, DeviceControlActivity.class);

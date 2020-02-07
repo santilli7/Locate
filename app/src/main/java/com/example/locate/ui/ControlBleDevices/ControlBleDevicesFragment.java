@@ -33,7 +33,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import static android.content.Context.BIND_AUTO_CREATE;
 import static androidx.constraintlayout.widget.Constraints.TAG;
 
 public class ControlBleDevicesFragment extends Fragment {
@@ -88,6 +87,7 @@ public class ControlBleDevicesFragment extends Fragment {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            System.out.println("Disconnected");
             mBluetoothLeService = null;
         }
 
@@ -135,10 +135,9 @@ public class ControlBleDevicesFragment extends Fragment {
         mDeviceName = getArguments().getString("name");
         mDeviceAddress = getArguments().getString("address");
         Intent gattServiceIntent = new Intent(getActivity(), BluetoothLeService.class);
-        getActivity().bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-
+        //getActivity().bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
         argument = (LatLng) getArguments().get("position");
-
+        mBluetoothLeService = BluetoothLeService.getInstance();
         ((TextView) v.findViewById(R.id.device_address)).setText(mDeviceAddress);
 
         btnInvia = (MaterialButton) v.findViewById(R.id.btnSendto);
@@ -226,8 +225,8 @@ public class ControlBleDevicesFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getActivity().unbindService(mServiceConnection);
-        mBluetoothLeService = null;
+        //getActivity().unbindService(mServiceConnection);
+        //mBluetoothLeService = null;
     }
 
 

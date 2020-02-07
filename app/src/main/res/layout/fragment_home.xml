@@ -6,9 +6,9 @@
 
     <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center|center_horizontal"
-        android:layout_marginTop="-30dp">
+        android:layout_height="540dp"
+        android:layout_gravity="center|center_horizontal">
+
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/sendposition"
@@ -83,7 +83,18 @@
                 app:shapeAppearance="@null" />
         </com.google.android.material.card.MaterialCardView>
 
-
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_stop_monitoring"
+            android:layout_width="330dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/sendposition"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="-87dp"
+            android:background="@color/colorPrimary"
+            android:text="@string/home_start_monitoring"
+            android:textAllCaps="false"
+            android:textColor="@android:color/background_light"
+            android:textSize="16sp" />
     </RelativeLayout>
 
 </FrameLayout>

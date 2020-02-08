@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -171,7 +173,7 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
                 @Override
                 public void run() {
                     mScanning = false;
-                    bluetoothAdapter.stopLeScan(mLeScanCallback);
+                    bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
                     if (getActivity() != null) {
                         getActivity().invalidateOptionsMenu();
                     }
@@ -179,29 +181,31 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
             }, SCAN_PERIOD);
 
             mScanning = true;
-            bluetoothAdapter.startLeScan(mLeScanCallback);
+            bluetoothAdapter.getBluetoothLeScanner().startScan(mLeScanCallback);
         } else {
             mScanning = false;
-            bluetoothAdapter.stopLeScan(mLeScanCallback);
+            bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
         }
         if (getActivity() != null) {
             getActivity().invalidateOptionsMenu();
         }
     }
 
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
+    private ScanCallback mLeScanCallback =
+            new ScanCallback() {
+
 
                 @Override
-                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+                public void onScanResult(int callbackType, final ScanResult result) {
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mLeDeviceListAdapter.addDevice(device);
+                                mLeDeviceListAdapter.addDevice(result.getDevice());
                                 mLeDeviceListAdapter.notifyDataSetChanged();
                             }
                         });
+                        super.onScanResult(callbackType, result);
                     }
                 }
             };
@@ -218,7 +222,7 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
         //intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.getName());
         //intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
         if (mScanning) {
-            bluetoothAdapter.stopLeScan(mLeScanCallback);
+            bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
             mScanning = false;
         }
         Navigation.findNavController(getView()).navigate(R.id.action_nav_search_ble_devices_to_nav_control_ble_devices, posBundle);

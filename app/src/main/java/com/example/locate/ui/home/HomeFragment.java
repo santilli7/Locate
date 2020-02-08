@@ -2,14 +2,25 @@ package com.example.locate.ui.home;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +31,7 @@ import android.widget.TextView;
 import com.example.locate.MainActivity;
 import com.example.locate.R;
 import com.example.locate.ui.ControlBleDevices.BluetoothLeService;
+import com.example.locate.ui.ControlBleDevices.SampleGattAttributes;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -29,6 +41,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.button.MaterialButton;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -60,12 +76,20 @@ public class HomeFragment extends Fragment {
     Button button_view, button_send;
     public CameraUpdate cameraUpdate;
     MainActivity home;
+    private static final long SCAN_PERIOD = 10000;
+    private final String LIST_NAME = "NAME";
+    private final String LIST_UUID = "UUID";
+
 
     private HomeViewModel homeViewModel;
     private NavArgument latitude;
     private NavArgument longitude;
     private BluetoothAdapter bluetoothAdapter;
     private boolean mBind = false;
+    ArrayList<ScanFilter> filters;
+    ArrayList<BluetoothDevice> devices;
+    private BluetoothGattCharacteristic characteristicTX, characteristicTx1;
+    private BluetoothGattCharacteristic characteristicRX;
 
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -89,6 +113,27 @@ public class HomeFragment extends Fragment {
 
 
     };
+    private Handler mHandler;
+    private boolean mScanning;
+
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
+
+
+            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+
+            } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                // Show all the supported services and characteristics on the user interface.
+                displayGattServices(mBluetoothLeService.getSupportedGattServices());
+            }
+
+
+        }
+    };
+    private boolean writestatus;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -98,7 +143,9 @@ public class HomeFragment extends Fragment {
         button_send = (Button) root.findViewById(R.id.send_button);
         button_view = (Button) root.findViewById(R.id.view_button);
         navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment);
-
+        filters = new ArrayList<>();
+        devices = new ArrayList<>();
+        mHandler = new Handler();
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getContext().getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
@@ -122,13 +169,12 @@ public class HomeFragment extends Fragment {
                         getActivity().bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
                         btnStartStop.setText(getContext().getResources().getString(R.string.home_stop_monitoring));
                         btnStartStop.setBackgroundColor(Color.rgb(191, 54, 12));
-                            /*}else if(mBind){
-                                System.out.println("Stopped & bind");
-                                Intent gattServiceIntent = new Intent(getActivity(), BluetoothLeService.class);
+                        getActivity().registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+                        startScan(true);
 
-                                btnStartStop.setText(getContext().getResources().getString(R.string.home_stop_monitoring));
-                                btnStartStop.setBackgroundColor(Color.rgb(191, 54, 12));
-                            }*/
+                        System.out.println("Devices" + devices);
+
+
 
                     } else if (BluetoothLeService.getState().equals(BLEState.RUNNING)) {
                         System.out.println("Service" + mServiceConnection);
@@ -139,6 +185,9 @@ public class HomeFragment extends Fragment {
                         mBind = false;
                         btnStartStop.setText(getContext().getResources().getString(R.string.home_start_monitoring));
                         btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
+                        startScan(false);
+                        getActivity().unregisterReceiver(mGattUpdateReceiver);
+                        devices.clear();
                             /*}else if(!mBind){
                                 System.out.println("Running & not bind");
                                 //Intent gattServiceIntent = new Intent(getActivity(), BluetoothLeService.class);
@@ -218,6 +267,82 @@ public class HomeFragment extends Fragment {
         return root;
     }
 
+
+    private void startScan(boolean enable) {
+
+        if (enable) {
+            // Stops scanning after a pre-defined scan period.
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mScanning = false;
+                    bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
+                    if (getActivity() != null) {
+                        getActivity().invalidateOptionsMenu();
+                    }
+                }
+            }, SCAN_PERIOD);
+
+            mScanning = true;
+            ScanFilter filter = new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(SampleGattAttributes.HM_10_CONF)).build();
+            filters.add(filter);
+            ScanSettings.Builder builderScanSettings = new ScanSettings.Builder();
+            builderScanSettings.setScanMode(ScanSettings.SCAN_MODE_BALANCED);
+            bluetoothAdapter.getBluetoothLeScanner().startScan(filters, builderScanSettings.build(), mLeScanCallback);
+            System.out.println("start search");
+        } else {
+            mScanning = false;
+            bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
+        }
+
+
+    }
+
+    private ScanCallback mLeScanCallback =
+            new ScanCallback() {
+                @Override
+                public void onScanResult(int callbackType, final ScanResult result) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                //mBluetoothLeService.connect(result.getDevice().getAddress());
+                                System.out.println("DeviceScanCallback" + result.getDevice());
+                                if (!devices.contains(result.getDevice())) {
+                                    devices.add(result.getDevice());
+                                    mBluetoothLeService.connect(result.getDevice().getAddress());
+                                    mHandler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (characteristicTX != null) {
+                                                characteristicTX.setValue("r");
+                                                writestatus = mBluetoothLeService.writeCharacteristic(characteristicTX);
+                                                mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);
+                                            }
+                                            mHandler.postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    mBluetoothLeService.disconnect();
+                                                }
+                                            }, 10000);
+
+                                            System.out.println("Connected");
+                                        }
+
+                                    }, 5000);
+
+                                    //System.out.println("MannaggiaSant");
+
+                                }
+                                //mLeDeviceListAdapter.addDevice(result.getDevice());
+                                //mLeDeviceListAdapter.notifyDataSetChanged();
+                            }
+                        });
+                        super.onScanResult(callbackType, result);
+                    }
+                }
+            };
+
     @Override
     public void onLowMemory() {
         super.onLowMemory();
@@ -268,6 +393,42 @@ public class HomeFragment extends Fragment {
         //getActivity().bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
         System.out.println("Result" + mServiceConnection);
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void displayGattServices(List<BluetoothGattService> gattServices) {
+        if (gattServices == null) return;
+        String uuid = null;
+        String unknownServiceString = getResources().getString(R.string.unknown_service);
+        ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
+
+
+        // Loops through available GATT Services.
+        for (BluetoothGattService gattService : gattServices) {
+            HashMap<String, String> currentServiceData = new HashMap<String, String>();
+            uuid = gattService.getUuid().toString();
+            currentServiceData.put(
+                    LIST_NAME, SampleGattAttributes.lookup(uuid, unknownServiceString));
+
+
+            currentServiceData.put(LIST_UUID, uuid);
+            gattServiceData.add(currentServiceData);
+
+            // get characteristic when UUID matches RX/TX UUID
+            characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_TX);
+            //characteristicTx1 = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+            characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+        }
+
+    }
+
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+        return intentFilter;
     }
 
 }

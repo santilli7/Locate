@@ -42,8 +42,9 @@ import android.util.Log;
 import com.example.locate.MainActivity;
 import com.example.locate.R;
 import com.example.locate.ui.home.BLEState;
+import com.google.android.gms.maps.model.LatLng;
 
-import java.util.Base64;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,6 +65,7 @@ public class BluetoothLeService extends Service {
     private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;
     private static BLEState state;
+    public ArrayList<LatLng> stringPos = new ArrayList();
     private static BluetoothLeService instance;
 
     private static final int STATE_DISCONNECTED = 0;
@@ -136,6 +138,7 @@ public class BluetoothLeService extends Service {
         }
     };
     private Bundle posBundle;
+    private LatLng strToLatLng;
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
@@ -155,9 +158,9 @@ public class BluetoothLeService extends Service {
             //stringBuilder.append(String.format("%02X ", byteChar));
             //Log.d(TAG, String.format("%s", new String(data)));
             String s = new String(data);
-            String u = Base64.getEncoder().encodeToString(data);
-            System.out.println("Valoreeeeee " + s);
-            System.out.println("Valoreeeeee " + u);
+
+            strToLatLng = manageData(s);
+            stringPos.add(strToLatLng);
 
             // getting cut off when longer, need to push on new line, 0A
             intent.putExtra(EXTRA_DATA, String.format("%s", new String(data)));
@@ -192,10 +195,22 @@ public class BluetoothLeService extends Service {
             Notification notification = builder.build();
 
 
-            notificationManager.notify(0, notification);
+            //notificationManager.notify(0, notification);
             System.out.println("Notification" + notification);
         }
         sendBroadcast(intent);
+    }
+
+
+    private LatLng manageData(String data) {
+        if (data.length() == 20) {
+            double lat, lng;
+            lat = Double.valueOf(data.substring(0, 10));
+            lng = Double.valueOf(data.substring(10, 20));
+            System.out.println(lat + " " + lng);
+            return new LatLng(lat, lng);
+        }
+        return new LatLng(0, 0);
     }
 
     public static BLEState getState() {

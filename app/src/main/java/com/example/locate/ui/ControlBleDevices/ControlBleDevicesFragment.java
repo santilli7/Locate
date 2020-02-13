@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.example.locate.R;
+import com.example.locate.ui.home.BLEState;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.button.MaterialButton;
 
@@ -32,6 +33,7 @@ import java.util.UUID;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import static android.content.Context.BIND_AUTO_CREATE;
 import static androidx.constraintlayout.widget.Constraints.TAG;
@@ -173,10 +175,11 @@ public class ControlBleDevicesFragment extends Fragment {
                 mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);
             }
             if (writestatus) {
-                //mBluetoothLeService.disconnect();
-                //getActivity().unbindService(mServiceConnection);
-                //mBluetoothLeService = null;
-                //Navigation.findNavController(getView()).navigate(R.id.action_nav_control_ble_devices_to_nav_home);
+                mBluetoothLeService.disconnect();
+                BluetoothLeService.setState(BLEState.STOPPED);
+                getActivity().unbindService(mServiceConnection);
+                mBluetoothLeService = null;
+                Navigation.findNavController(getView()).navigate(R.id.action_nav_control_ble_devices_to_nav_home);
             }
             //readDataFromBLE();
         }
@@ -233,13 +236,17 @@ public class ControlBleDevicesFragment extends Fragment {
     public void onPause() {
         super.onPause();
         getActivity().unregisterReceiver(mGattUpdateReceiver);
+        if (BluetoothLeService.getState().equals(BLEState.RUNNING)) {
+            BluetoothLeService.setState(BLEState.STOPPED);
+            getActivity().unbindService(mServiceConnection);
+            mBluetoothLeService = null;
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getActivity().unbindService(mServiceConnection);
-        mBluetoothLeService = null;
+
     }
 
 

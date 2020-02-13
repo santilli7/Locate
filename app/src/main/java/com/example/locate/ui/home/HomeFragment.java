@@ -1,6 +1,11 @@
 package com.example.locate.ui.home;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -17,6 +22,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -48,12 +54,15 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavArgument;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDeepLinkBuilder;
 import androidx.navigation.Navigation;
 
 import static android.content.Context.BIND_AUTO_CREATE;
@@ -88,8 +97,17 @@ public class HomeFragment extends Fragment {
     private boolean mBind = false;
     ArrayList<ScanFilter> filters;
     ArrayList<BluetoothDevice> devices;
-    private BluetoothGattCharacteristic characteristicTX, characteristicTx1;
+    private BluetoothGattCharacteristic characteristicTX;
     private BluetoothGattCharacteristic characteristicRX;
+    private ArrayList<LatLng> positions = new ArrayList<>();
+    private Bundle posBundle;
+    private Handler mHandler;
+    private boolean mScanning;
+    private boolean writestatus;
+    private boolean mConnected;
+
+
+
 
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -113,27 +131,36 @@ public class HomeFragment extends Fragment {
 
 
     };
-    private Handler mHandler;
-    private boolean mScanning;
 
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-
+                System.out.println("Intent connected");
+                mConnected = true;
 
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                System.out.println("Intent disconnected");
+                mConnected = false;
+                if (positions.size() != 0) {
+                    notifyEmergency(positions);
+                }
 
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
+            } else if (BluetoothLeService.EXTRA_DATA.equals(action)) {
+                //System.out.println("Positions"+positions.size());
+                if (intent.getParcelableExtra("positions") != null) {
+                    positions.add((LatLng) intent.getParcelableExtra("positions"));
+                    System.out.println("Positions" + positions.size());
+                }
             }
-
-
         }
     };
-    private boolean writestatus;
+
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -169,10 +196,10 @@ public class HomeFragment extends Fragment {
                         getActivity().bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
                         btnStartStop.setText(getContext().getResources().getString(R.string.home_stop_monitoring));
                         btnStartStop.setBackgroundColor(Color.rgb(191, 54, 12));
-                        getActivity().registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+                        //getActivity().registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
                         startScan(true);
 
-                        System.out.println("Devices" + devices);
+                        //System.out.println("Devices" + positions.size());
 
 
 
@@ -186,7 +213,7 @@ public class HomeFragment extends Fragment {
                         btnStartStop.setText(getContext().getResources().getString(R.string.home_start_monitoring));
                         btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
                         startScan(false);
-                        getActivity().unregisterReceiver(mGattUpdateReceiver);
+                        //getActivity().unregisterReceiver(mGattUpdateReceiver);
                         devices.clear();
                             /*}else if(!mBind){
                                 System.out.println("Running & not bind");
@@ -213,11 +240,13 @@ public class HomeFragment extends Fragment {
         }
 
         if (getArguments() == null) {
+            System.out.println("NavArgument ");
             latitude = navController.getCurrentDestination().getArguments().get("position_latitude");
             longitude = navController.getCurrentDestination().getArguments().get("position_longitude");
             lat = (double) latitude.getDefaultValue();
             lng = (double) longitude.getDefaultValue();
         } else {
+            System.out.println("Argument ");
             lat = getArguments().getDouble("position_latitude");
             lng = getArguments().getDouble("position_longitude");
         }
@@ -277,7 +306,9 @@ public class HomeFragment extends Fragment {
                 public void run() {
                     mScanning = false;
                     bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
+                    System.out.println("Stop scan");
                     if (getActivity() != null) {
+
                         getActivity().invalidateOptionsMenu();
                     }
                 }
@@ -289,9 +320,10 @@ public class HomeFragment extends Fragment {
             ScanSettings.Builder builderScanSettings = new ScanSettings.Builder();
             builderScanSettings.setScanMode(ScanSettings.SCAN_MODE_BALANCED);
             bluetoothAdapter.getBluetoothLeScanner().startScan(filters, builderScanSettings.build(), mLeScanCallback);
-            System.out.println("start search");
+            System.out.println("start scan");
         } else {
             mScanning = false;
+            System.out.println("stop scan");
             bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);
         }
 
@@ -303,11 +335,10 @@ public class HomeFragment extends Fragment {
                 @Override
                 public void onScanResult(int callbackType, final ScanResult result) {
                     if (getActivity() != null) {
+                        System.out.println("porcooooooooooo");
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                //mBluetoothLeService.connect(result.getDevice().getAddress());
-                                System.out.println("DeviceScanCallback" + result.getDevice());
                                 if (!devices.contains(result.getDevice())) {
                                     devices.add(result.getDevice());
                                     mBluetoothLeService.connect(result.getDevice().getAddress());
@@ -322,20 +353,16 @@ public class HomeFragment extends Fragment {
                                             mHandler.postDelayed(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    mBluetoothLeService.disconnect();
+                                                    if (mConnected) {
+                                                        mBluetoothLeService.disconnect();
+                                                    }
                                                 }
                                             }, 10000);
-
-                                            System.out.println("Connected");
                                         }
 
-                                    }, 5000);
-
-                                    //System.out.println("MannaggiaSant");
+                                    }, 10000);
 
                                 }
-                                //mLeDeviceListAdapter.addDevice(result.getDevice());
-                                //mLeDeviceListAdapter.notifyDataSetChanged();
                             }
                         });
                         super.onScanResult(callbackType, result);
@@ -350,18 +377,62 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        getActivity().unregisterReceiver(mGattUpdateReceiver);
+        if (BluetoothLeService.getState().equals(BLEState.RUNNING) && mBind) {
+            getActivity().unbindService(mServiceConnection);
+            btnStartStop.setText(getContext().getResources().getString(R.string.home_start_monitoring));
+            btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
+        }
+        System.out.println("UnregisterReceiver");
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         if (mapview != null) {
             mapview.onDestroy();
         }
-        if (BluetoothLeService.getState().equals(BLEState.RUNNING)) {
-            getActivity().unbindService(mServiceConnection);
-            btnStartStop.setText(getContext().getResources().getString(R.string.home_start_monitoring));
-            btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
-        }
+        /*
+         */
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void notifyEmergency(ArrayList<LatLng> positions) {
+        System.out.println("Notification");
+
+        posBundle = new Bundle();
+        posBundle.putParcelableArrayList("positions", positions);
+        CharSequence channelName = "My Channel";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        NotificationChannel notificationChannel = new NotificationChannel("default", channelName, importance);
+        notificationChannel.enableLights(true);
+        notificationChannel.setLightColor(Color.RED);
+        notificationChannel.enableVibration(true);
+        notificationChannel.setVibrationPattern(new long[]{1000, 2000});
+
+        NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(Service.NOTIFICATION_SERVICE);
+        notificationManager.createNotificationChannel(notificationChannel);
+
+        NavDeepLinkBuilder navDeepLinkBuilder = new NavDeepLinkBuilder(getContext());
+        PendingIntent pendingIntent = navDeepLinkBuilder
+                .setComponentName(MainActivity.class)
+                .setGraph(R.navigation.mobile_navigation)
+                .setDestination(R.id.nav_emergency)
+                .setArguments(posBundle)
+                .createPendingIntent();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), "default");
+        builder.setContentTitle(getString(R.string.app_name));
+        builder.setContentText("Ci sono " + positions.size() + " emergenze");
+        builder.setSmallIcon(R.drawable.place2);
+        builder.setContentIntent(pendingIntent);
+        builder.setAutoCancel(true);
+        Notification notification = builder.build();
+        notificationManager.notify(0, notification);
+        System.out.println("Notification" + notification);
+    }
 
     @Override
     public void onResume() {
@@ -369,6 +440,8 @@ public class HomeFragment extends Fragment {
         mapview.onResume();
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
+        getActivity().registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        System.out.println("RegisterReceiver");
         if (BluetoothLeService.getState().equals(BLEState.STOPPED)) {
             btnStartStop.setText(getContext().getResources().getString(R.string.home_start_monitoring));
             btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
@@ -428,6 +501,7 @@ public class HomeFragment extends Fragment {
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(BluetoothLeService.EXTRA_DATA);
         return intentFilter;
     }
 

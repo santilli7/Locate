@@ -42,10 +42,16 @@ public class MapFragment extends Fragment {
                 ViewModelProviders.of(this).get(MapViewModel.class);
         View root = inflater.inflate(R.layout.fragment_map, container, false);
         navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment);
-        latitude = Navigation.findNavController(getActivity(), R.id.nav_host_fragment).getCurrentDestination().getArguments().get("position_latitude");
-        longitude = Navigation.findNavController(getActivity(), R.id.nav_host_fragment).getCurrentDestination().getArguments().get("position_longitude");
-        lat = (double) latitude.getDefaultValue();
-        lng = (double) longitude.getDefaultValue();
+        if (getArguments() != null && getArguments().getParcelable("position") != null) {
+            position = getArguments().getParcelable("position");
+            lat = position.latitude;
+            lng = position.longitude;
+        } else {
+            latitude = Navigation.findNavController(getActivity(), R.id.nav_host_fragment).getCurrentDestination().getArguments().get("position_latitude");
+            longitude = Navigation.findNavController(getActivity(), R.id.nav_host_fragment).getCurrentDestination().getArguments().get("position_longitude");
+            lat = (double) latitude.getDefaultValue();
+            lng = (double) longitude.getDefaultValue();
+        }
         fragment_map = (MapView) root.findViewById(R.id.fragment_map);
         fragment_map.onCreate(savedInstanceState);
         fragment_map.onResume();

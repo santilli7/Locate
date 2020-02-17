@@ -5,12 +5,15 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelUuid;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,20 +26,19 @@ import android.widget.Toast;
 import com.example.locate.MainActivity;
 import com.example.locate.R;
 import com.example.locate.ui.ControlBleDevices.BluetoothLeService;
+import com.example.locate.ui.ControlBleDevices.SampleGattAttributes;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.ArrayList;
+
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.ListFragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 public class SearchBleDevicesFragment extends ListFragment implements AdapterView.OnItemClickListener {
 
     private final static int REQUEST_ENABLE_BT = 1;
-    private SearchBleDevicesViewModel searchBleDevicesViewModel;
     private BluetoothAdapter bluetoothAdapter;
 
     private LeDeviceListAdapter mLeDeviceListAdapter;
@@ -51,20 +53,15 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
     private static final long SCAN_PERIOD = 10000;
     private LatLng argument;
     private Bundle posBundle, deviceBundle;
+    private ArrayList<ScanFilter> filters;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
-        searchBleDevicesViewModel =
-                ViewModelProviders.of(this).get(SearchBleDevicesViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_search_ble_devices, container, false);
-        searchBleDevicesViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
 
-            }
-        });
+        View root = inflater.inflate(R.layout.fragment_search_ble_devices, container, false);
+
 
         argument = (LatLng) getArguments().get("position");
         posBundle = new Bundle();
@@ -168,6 +165,7 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
 
     private void scanLeDevice(final boolean enable) {
         if (enable) {
+            filters = new ArrayList<>();
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
                 @Override
@@ -181,7 +179,11 @@ public class SearchBleDevicesFragment extends ListFragment implements AdapterVie
             }, SCAN_PERIOD);
 
             mScanning = true;
-            bluetoothAdapter.getBluetoothLeScanner().startScan(mLeScanCallback);
+            ScanFilter filter = new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(SampleGattAttributes.HM_10_CONF)).build();
+            filters.add(filter);
+            ScanSettings.Builder builderScanSettings = new ScanSettings.Builder();
+            builderScanSettings.setScanMode(ScanSettings.SCAN_MODE_BALANCED);
+            bluetoothAdapter.getBluetoothLeScanner().startScan(filters, builderScanSettings.build(), mLeScanCallback);
         } else {
             mScanning = false;
             bluetoothAdapter.getBluetoothLeScanner().stopScan(mLeScanCallback);

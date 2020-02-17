@@ -15,10 +15,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavArgument;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -29,7 +26,6 @@ public class MapFragment extends Fragment {
     MapView fragment_map;
     GoogleMap map;
     LatLng position;
-    private MapViewModel mapViewModel;
     private CameraUpdate cameraUpdate;
     private NavArgument latitude;
     private NavArgument longitude;
@@ -38,8 +34,6 @@ public class MapFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        mapViewModel =
-                ViewModelProviders.of(this).get(MapViewModel.class);
         View root = inflater.inflate(R.layout.fragment_map, container, false);
         navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment);
         if (getArguments() != null && getArguments().getParcelable("position") != null) {
@@ -64,12 +58,6 @@ public class MapFragment extends Fragment {
                 googleMap.addMarker(markerOptions);
                 googleMap.animateCamera(cameraUpdate);
                 map = googleMap;
-            }
-        });
-        mapViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-
             }
         });
         return root;

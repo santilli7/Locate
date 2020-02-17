@@ -8,11 +8,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="com.google.android.providers.gsf.permission.
-   READ_GSERVICES" />
+    <uses-permission android:name="com.google.android.providers.gsf.permission.    READ_GSERVICES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
@@ -25,6 +25,11 @@
         android:roundIcon="@drawable/place2"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <receiver
+            android:name=".ui.ControlBleDevices.StopServiceReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -35,12 +40,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <uses-library
             android:name="org.apache.http.legacy"
-            android:required="false" />"
+            android:required="false" />
+
         <service
             android:name=".ui.ControlBleDevices.BluetoothLeService"
-            android:enabled="true" />
+            android:enabled="true"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.android.gms.maps.API_OPTIONS"
             android:value="AIzaSyBYq5iifwR3w3_eH_garWd2Rz1RS6WxxPM" />

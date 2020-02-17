@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Spinner;
 
 import com.example.locate.R;
+import com.example.locate.ui.ControlBleDevices.BluetoothLeService;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -15,10 +16,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavArgument;
 import androidx.navigation.Navigation;
 
@@ -33,9 +31,8 @@ public class SendPositionFragment extends Fragment implements OnMapReadyCallback
     TextInputEditText latitude, longitude;
     Spinner priority;
     LatLng position;
+    private BluetoothLeService mBluetooth;
 
-
-    private SendPositionViewModel sendPositionViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -54,13 +51,21 @@ public class SendPositionFragment extends Fragment implements OnMapReadyCallback
         longitude.setText(str_longitude);
         btnInvia = (MaterialButton) v.findViewById(R.id.btnInvia);
 
+
         posBundle = new Bundle();
         posBundle.putParcelable("position", position);
 
         btnInvia.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Navigation.findNavController(getView()).navigate(R.id.action_nav_send_position_to_nav_search_ble_devices, posBundle);
+                if (BluetoothLeService.getInstance() != null && BluetoothLeService.getDevice() != null) {
+                    if (BluetoothLeService.getInstance().sendDataToBLE(position, (String) priority.getSelectedItem())) {
+                        Navigation.findNavController(getView()).navigate(R.id.action_nav_send_position_to_nav_home, posBundle);
+                    }
+                } else {
+                    System.out.println("Not present");
+                }
+                //
             }
         });
 
@@ -70,13 +75,7 @@ public class SendPositionFragment extends Fragment implements OnMapReadyCallback
         mapview.onResume();
         mapview.getMapAsync(this);
         */
-        sendPositionViewModel = ViewModelProviders.of(this).get(SendPositionViewModel.class);
-        sendPositionViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
 
-            }
-        });
 
 
         return v;

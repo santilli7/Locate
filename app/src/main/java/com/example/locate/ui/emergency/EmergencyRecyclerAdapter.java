@@ -20,10 +20,12 @@ class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     //private List<TimelineModel> models;
     private List<Location> locations;
     private Context context;
+    private String priority;
 
-    EmergencyRecyclerAdapter(Context context, List<Location> locations) {
+    EmergencyRecyclerAdapter(Context context, List<Location> locations, String priority) {
         this.locations = locations;
         this.context = context;
+        this.priority = priority;
     }
 
     public EmergencyRecyclerAdapter() {
@@ -47,6 +49,15 @@ class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         EmergencyViewHolder emergencyViewHolder = (EmergencyViewHolder) holder;
         emergencyViewHolder.myTextView.setText(locations.get(position).address);
         emergencyViewHolder.myTextView.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark));
+
+        if (priority.equals("h")) {
+            emergencyViewHolder.priorityButton.setImageResource(R.drawable.high_priority);
+        } else if (priority.equals("u")) {
+            emergencyViewHolder.priorityButton.setImageResource(R.drawable.urgent_priority);
+        } else if (priority.equals("d")) {
+            emergencyViewHolder.priorityButton.setImageResource(R.drawable.discrete_priority);
+        }
+
         emergencyViewHolder.materialButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

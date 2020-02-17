@@ -37,12 +37,21 @@
 
             <ImageButton
                 android:id="@+id/imageButton"
-                android:layout_width="50dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center_vertical|end"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end"
                 android:background="@android:color/transparent"
                 android:tint="@color/colorPrimary"
                 app:srcCompat="@drawable/ic_menu_map" />
+
+            <ImageButton
+                android:id="@+id/priorityButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="bottom|end"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/ic_menu_map" />
+
 
             <TextView
                 android:id="@+id/textView2"

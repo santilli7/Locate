@@ -13,12 +13,14 @@ public class EmergencyViewHolder extends RecyclerView.ViewHolder {
     MaterialCardView cardView;
     ImageButton materialButton;
     TextView myTextView;
+    ImageButton priorityButton;
 
     public EmergencyViewHolder(View itemView) {
         super(itemView);
         myTextView = (TextView) itemView.findViewById(R.id.textView2);
         cardView = (MaterialCardView) itemView.findViewById(R.id.emergency_card);
         materialButton = (ImageButton) itemView.findViewById(R.id.imageButton);
+        priorityButton = (ImageButton) itemView.findViewById(R.id.priorityButton);
     }
 
     public TextView getMyTextView() {
@@ -32,4 +34,9 @@ public class EmergencyViewHolder extends RecyclerView.ViewHolder {
     public ImageButton getMaterialButton() {
         return materialButton;
     }
+
+    public ImageButton getPriorityButton() {
+        return priorityButton;
+    }
+
 }

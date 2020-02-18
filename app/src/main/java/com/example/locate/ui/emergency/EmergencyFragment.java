@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.example.locate.Location;
 import com.example.locate.R;
+import com.example.locate.TinyDB;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
@@ -27,44 +28,49 @@ public class EmergencyFragment extends Fragment {
     private EmergencyRecyclerAdapter adapter = new EmergencyRecyclerAdapter();
     private TextView textView;
     private Emergency emergency;
+    private ArrayList<Object> listEmergency = new ArrayList<>();
+    private TinyDB tinyDB;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_emergency, container, false);
+        tinyDB = new TinyDB(getContext());
+        listEmergency = tinyDB.getListObject("list", Emergency.class);
+        if (listEmergency == null) {
 
-
-        if (getArguments() != null) {
+        } else if (getArguments() != null) {
             clearView();
             emergency = getArguments().getParcelable("emergency");
-                Location location = new Location();
-            location.setLatitude(emergency.getLatitude());
-            location.setLongitude(emergency.getLongitude());
-                Geocoder gc = new Geocoder(getContext());
-                if (gc.isPresent()) {
-                    ArrayList<Address> list = new ArrayList<>();
 
-                    try {
-                        list = (ArrayList<Address>) gc.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (list.size() > 0) {
-                        if (list.get(0).getAddressLine(0) != null)
-                            location.setAddress(String.valueOf(list.get(0).getLocality()));
-                    } else {
-                        location.setAddress("Unknown");
-                    }
+            Geocoder gc = new Geocoder(getContext());
+            if (gc.isPresent()) {
+                ArrayList<Address> list = new ArrayList<>();
+
+                try {
+                    list = (ArrayList<Address>) gc.getFromLocation(emergency.getLatitude(), emergency.getLongitude(), 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-
-                locations.add(location);
+                if (list.size() > 0) {
+                    if (list.get(0).getAddressLine(0) != null)
+                        emergency.setAddress(String.valueOf(list.get(0).getLocality()));
+                } else {
+                    emergency.setAddress("Unknown");
+                }
             }
+
+            listEmergency.add(emergency);
+
+            tinyDB.putListObject("list", listEmergency);
+
+        }
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
             linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 
             RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.emergency_recycler_view);
             recyclerView.setLayoutManager(linearLayoutManager);
             recyclerView.setHasFixedSize(true);
-        adapter = new EmergencyRecyclerAdapter(getContext(), locations, emergency.getPriority());
+        adapter = new EmergencyRecyclerAdapter(getContext(), listEmergency);
             recyclerView.setAdapter(adapter);
             System.out.println(locations);
 

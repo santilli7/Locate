@@ -36,13 +36,6 @@
         android:label="@string/menu_send_position"
         tools:layout="@layout/fragment_send_position">
         <action
-            android:id="@+id/action_nav_send_position_to_nav_search_ble_devices"
-            app:destination="@id/nav_search_ble_devices"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
             android:id="@+id/action_nav_send_position_to_nav_home"
             app:destination="@id/nav_home"
             app:enterAnim="@anim/nav_default_enter_anim"
@@ -73,53 +66,10 @@
         tools:layout="@layout/fragment_map" />
 
     <fragment
-        android:id="@+id/nav_search_ble_devices"
-        android:name="com.example.locate.ui.searchBleDevices.SearchBleDevicesFragment"
-        android:label="@string/menu_search_ble_devices"
-        tools:layout="@layout/fragment_search_ble_devices">
-        <action
-            android:id="@+id/action_nav_search_ble_devices_to_nav_control_ble_devices"
-            app:destination="@id/nav_control_ble_devices"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-    <fragment
-        android:id="@+id/nav_control_ble_devices"
-        android:name="com.example.locate.ui.ControlBleDevices.ControlBleDevicesFragment"
-        android:label="@string/menu_control_ble_devices"
-        tools:layout="@layout/fragment_search_ble_devices">
-        <action
-            android:id="@+id/action_nav_control_ble_devices_to_nav_home"
-            app:destination="@id/nav_home"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_send"
-        android:name="com.example.locate.ui.account.AccountFragment"
-        android:label="@string/menu_send"
-        tools:layout="@layout/fragment_send" />
-
-    <fragment
         android:id="@+id/nav_account"
         android:name="com.example.locate.ui.account.AccountFragment"
         android:label="@string/menu_account"
         tools:layout="@layout/fragment_account" />
-    <action
-        android:id="@+id/action_global_nav_account"
-        app:destination="@id/nav_send"
-        app:enterAnim="@anim/nav_default_enter_anim"
-        app:exitAnim="@anim/nav_default_exit_anim"
-        app:popUpTo="@id/nav_home"
-        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim"
-        app:popUpToInclusive="true"
-        app:launchSingleTop="true" />
     <action
         android:id="@+id/action_global_nav_send_position"
         app:destination="@id/nav_send_position"

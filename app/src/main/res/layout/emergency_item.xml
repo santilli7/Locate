@@ -26,11 +26,11 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/emergency_card"
             android:layout_width="370dp"
-            android:layout_height="80dp"
+            android:layout_height="90dp"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="10dp"
-            android:layout_marginBottom="40dp"
+            android:layout_marginBottom="30dp"
             android:visibility="visible"
             app:cardCornerRadius="20dp"
             app:cardElevation="7dp">
@@ -39,7 +39,8 @@
                 android:id="@+id/imageButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_gravity="end"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="15dp"
                 android:background="@android:color/transparent"
                 android:tint="@color/colorPrimary"
                 app:srcCompat="@drawable/ic_menu_map" />
@@ -48,20 +49,75 @@
                 android:id="@+id/priorityButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_gravity="bottom|end"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="40dp"
                 android:background="@android:color/transparent"
                 app:srcCompat="@drawable/ic_menu_map" />
 
 
             <TextView
                 android:id="@+id/textView2"
-                android:layout_width="300dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="10dp"
+                android:layout_width="355dp"
+                android:layout_height="35dp"
+                android:layout_gravity="top"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="20dp"
                 android:fontFamily="@font/roboto_medium"
+                android:foregroundGravity="center_vertical"
+                android:gravity="center_vertical"
                 android:textColor="@color/colorPrimary"
                 android:textSize="16sp" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="@color/colorPrimary"
+                android:backgroundTint="@color/colorPrimary">
+
+                <Button
+                    android:id="@+id/accept_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_gravity="bottom|start"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:elevation="0dp"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:scrollbarSize="0dp"
+                    android:stateListAnimator="@null"
+                    android:text="@string/accept_emergency"
+                    android:textColor="@color/cast_libraries_material_featurehighlight_text_body_color"
+                    android:textSize="13sp"
+                    app:iconPadding="0dp"
+                    app:iconTint="@android:color/transparent"
+                    app:shapeAppearance="@null" />
+
+                <Button
+                    android:id="@+id/decline_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_alignParentEnd="true"
+                    android:background="@android:color/transparent"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:elevation="0dp"
+                    android:fontFamily="@font/roboto_medium"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:scrollbarSize="0dp"
+                    android:stateListAnimator="@null"
+                    android:text="@string/refuse_emergency"
+                    android:textColor="@color/cast_expanded_controller_text_color"
+                    android:textSize="13sp"
+                    app:iconPadding="0dp"
+                    app:iconTint="@android:color/transparent"
+                    app:shapeAppearance="@null" />
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
     </RelativeLayout>
 

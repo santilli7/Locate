@@ -6,11 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.locate.Location;
 import com.example.locate.R;
+import com.example.locate.TinyDB;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,14 +18,15 @@ import androidx.recyclerview.widget.RecyclerView;
 class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     //private List<TimelineModel> models;
-    private List<Location> locations;
+    private ArrayList<Object> listEmergency;
     private Context context;
     private String priority;
+    private TinyDB tinyDB;
+    private Emergency emergency;
 
-    EmergencyRecyclerAdapter(Context context, List<Location> locations, String priority) {
-        this.locations = locations;
+    EmergencyRecyclerAdapter(Context context, ArrayList<Object> listEmergency) {
         this.context = context;
-        this.priority = priority;
+        this.listEmergency = listEmergency;
     }
 
     public EmergencyRecyclerAdapter() {
@@ -41,20 +42,21 @@ class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
 
-        LatLng positions = new LatLng(locations.get(position).latitude, locations.get(position).longitude);
+        emergency = Emergency.class.cast(listEmergency.get(position));
+        LatLng positions = new LatLng(emergency.getLatitude(), emergency.getLongitude());
         final Bundle bundle = new Bundle();
         bundle.putParcelable("position", positions);
         EmergencyViewHolder emergencyViewHolder = (EmergencyViewHolder) holder;
-        emergencyViewHolder.myTextView.setText(locations.get(position).address);
+        emergencyViewHolder.myTextView.setText(emergency.getAddress());
         emergencyViewHolder.myTextView.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark));
 
-        if (priority.equals("h")) {
+        if (emergency.getPriority().equals("h")) {
             emergencyViewHolder.priorityButton.setImageResource(R.drawable.high_priority);
-        } else if (priority.equals("u")) {
+        } else if (emergency.getPriority().equals("u")) {
             emergencyViewHolder.priorityButton.setImageResource(R.drawable.urgent_priority);
-        } else if (priority.equals("d")) {
+        } else if (emergency.getPriority().equals("d")) {
             emergencyViewHolder.priorityButton.setImageResource(R.drawable.discrete_priority);
         }
 
@@ -65,12 +67,23 @@ class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             }
         });
+
+        emergencyViewHolder.decline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listEmergency.remove(position);
+                notifyItemRemoved(position);
+                notifyItemRangeChanged(position, listEmergency.size());
+                tinyDB = new TinyDB(context);
+                tinyDB.putListObject("list", listEmergency);
+            }
+        });
     }
 
 
     @Override
     public int getItemCount() {
-        return (null != locations ? locations.size() : 0);
+        return (null != listEmergency ? listEmergency.size() : 0);
     }
 
 }

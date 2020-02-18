@@ -51,6 +51,7 @@ import android.util.Log;
 
 import com.example.locate.MainActivity;
 import com.example.locate.R;
+import com.example.locate.TinyDB;
 import com.example.locate.ui.emergency.Emergency;
 import com.example.locate.ui.home.BLEState;
 import com.google.android.gms.maps.model.LatLng;
@@ -253,6 +254,7 @@ public class BluetoothLeService extends Service {
         super.onCreate();
         if (null == instance)
             instance = this;
+        TinyDB tinyDB = new TinyDB(this);
         mHandler = new Handler();
         mStopReceiver = new StopServiceReceiver();
         state = BLEState.STOPPED;

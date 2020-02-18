@@ -51,4 +51,6 @@
     <string name="emerencyNotification">C\'è un emergenza</string>
     <string name="home_start_monitoring">Start Listening</string>
     <string name="home_stop_monitoring">Stop Listening</string>
+    <string name="refuse_emergency">Decline</string>
+    <string name="accept_emergency">Accept</string>
 </resources>

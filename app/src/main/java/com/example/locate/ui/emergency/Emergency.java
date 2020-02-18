@@ -3,9 +3,9 @@ package com.example.locate.ui.emergency;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Emergency implements Parcelable {
+public class Emergency extends Object implements Parcelable {
     private double latitude, longitude;
-    private String priority;
+    private String priority, address;
 
     public Emergency(double latitude, double longitude, String priority) {
         this.latitude = latitude;
@@ -17,10 +17,19 @@ public class Emergency implements Parcelable {
 
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     protected Emergency(Parcel in) {
         latitude = in.readDouble();
         longitude = in.readDouble();
         priority = in.readString();
+        address = in.readString();
     }
 
     public static final Creator<Emergency> CREATOR = new Creator<Emergency>() {
@@ -69,5 +78,6 @@ public class Emergency implements Parcelable {
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeString(priority);
+        dest.writeString(address);
     }
 }

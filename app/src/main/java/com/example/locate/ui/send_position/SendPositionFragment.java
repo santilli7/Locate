@@ -4,7 +4,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Spinner;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.locate.R;
 import com.example.locate.ui.ControlBleDevices.BluetoothLeService;
@@ -29,9 +33,10 @@ public class SendPositionFragment extends Fragment implements OnMapReadyCallback
     GoogleMap map;
     MaterialButton btnInvia;
     TextInputEditText latitude, longitude;
-    Spinner priority;
+    AutoCompleteTextView priority;
     LatLng position;
     private BluetoothLeService mBluetooth;
+    private String strPriority;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -40,12 +45,32 @@ public class SendPositionFragment extends Fragment implements OnMapReadyCallback
 
         latitude = (TextInputEditText) v.findViewById(R.id.et_latitude);
         longitude = (TextInputEditText) v.findViewById(R.id.et_longitude);
-        priority = (Spinner) v.findViewById(R.id.spinnerEmergency);
+        priority = (AutoCompleteTextView) v.findViewById(R.id.filled_exposed_dropdown);
+
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(
+                        getContext(),
+                        R.layout.dropdown_menu_popup_item,
+                        getContext().getResources().getStringArray(R.array.priority));
+
+        priority.setAdapter(adapter);
+        priority.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                strPriority = (String) parent.getItemAtPosition(position);
+            }
+        });
         lat = Navigation.findNavController(getActivity(), R.id.nav_host_fragment).getCurrentDestination().getArguments().get("position_latitude");
         lng = Navigation.findNavController(getActivity(), R.id.nav_host_fragment).getCurrentDestination().getArguments().get("position_longitude");
 
-        String str_latitude = String.valueOf(lat.getDefaultValue());
+        final View layout = inflater.inflate(R.layout.toast_layout,
+                (ViewGroup) v.findViewById(R.id.custom_toast_layout_id));
+
+// set a message
+        final TextView text = (TextView) layout.findViewById(R.id.toast_text);
+        final String str_latitude = String.valueOf(lat.getDefaultValue());
         String str_longitude = String.valueOf(lng.getDefaultValue());
+        final Toast toast = new Toast(getContext());
         position = new LatLng((double) lat.getDefaultValue(), (double) lng.getDefaultValue());
         latitude.setText(str_latitude);
         longitude.setText(str_longitude);
@@ -59,11 +84,21 @@ public class SendPositionFragment extends Fragment implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 if (BluetoothLeService.getInstance() != null && BluetoothLeService.getDevice() != null) {
-                    if (BluetoothLeService.getInstance().sendDataToBLE(position, (String) priority.getSelectedItem())) {
-                        Navigation.findNavController(getView()).navigate(R.id.action_nav_send_position_to_nav_home, posBundle);
+                    if (strPriority != null) {
+                        if (BluetoothLeService.getInstance().sendDataToBLE(position, strPriority)) {
+                            Navigation.findNavController(getView()).navigate(R.id.action_nav_send_position_to_nav_home, posBundle);
+                        }
+                    } else {
+                        Toast.makeText(getContext(), R.string.error_priority, Toast.LENGTH_SHORT).show();
+                        /*
+                        text.setText(R.string.error_priority);
+                        toast.setView(layout);
+                        toast.setDuration(Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.CENTER_HORIZONTAL,0,Gravity.BOTTOM);
+                        toast.show();*/
                     }
                 } else {
-                    System.out.println("Not present");
+                    Toast.makeText(getContext(), R.string.error_connect, Toast.LENGTH_SHORT).show();
                 }
                 //
             }

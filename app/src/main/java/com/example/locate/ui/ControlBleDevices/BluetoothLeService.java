@@ -280,7 +280,7 @@ public class BluetoothLeService extends Service {
 
 
         } else if (intent != null && intent.getAction() != null && intent.getAction().equals(StartForegroundAction) && state.equals(BLEState.STOPPED)) {
-            state = BLEState.RUNNING;
+            state = BLEState.CONNECTING;
             initialize();
             registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
             registerReceiver(mStopReceiver, new IntentFilter("stop_receiver"));
@@ -372,6 +372,9 @@ public class BluetoothLeService extends Service {
                         mConnected = connect(bleDevice.getAddress());
                         if (mConnected) {
                             System.out.println(bleDevice);
+                            state = BLEState.RUNNING;
+                            Intent connected = new Intent("connected");
+                            sendBroadcast(connected);
                             Notification notification = createForegroundService();
                             startForeground(101, notification);
                         }
@@ -680,7 +683,7 @@ public class BluetoothLeService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default");
         builder.setContentTitle(getString(R.string.app_name));
         builder.setContentText("New emergency");
-        builder.setSmallIcon(R.drawable.place2);
+        builder.setSmallIcon(R.drawable.ic_notification);
         builder.setContentIntent(pendingIntent);
         builder.setAutoCancel(true);
         Notification notification = builder.build();
@@ -725,7 +728,7 @@ public class BluetoothLeService extends Service {
                 .setContentTitle("Locate")
                 .setTicker("Locate")
                 .setContentText("Start service")
-                .setSmallIcon(R.drawable.place2)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
                 .addAction(android.R.drawable.ic_media_pause, "Stop", pStopIntent)

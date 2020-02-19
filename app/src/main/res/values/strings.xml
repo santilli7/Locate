@@ -49,8 +49,12 @@
     <string name="menu_stop">Stop</string>
     <string name="is_serial">Serial Present:</string>
     <string name="emerencyNotification">C\'è un emergenza</string>
-    <string name="home_start_monitoring">Start Listening</string>
-    <string name="home_stop_monitoring">Stop Listening</string>
+    <string name="home_start_monitoring">Connect to your BLE device</string>
+    <string name="home_stop_monitoring">Disconnect</string>
     <string name="refuse_emergency">Decline</string>
     <string name="accept_emergency">Accept</string>
+    <string name="error_priority">You must select priority</string>
+    <string name="error_connect">First connect with your ble device</string>
+    <string name="connecting">Connecting...</string>
+    <string name="send_position">Send</string>
 </resources>

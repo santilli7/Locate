@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/icon_back"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="com.example.locate.SplashActivity">
+
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@android:color/transparent"
+        android:backgroundTint="@android:color/transparent">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerInParent="true"
+            android:layout_marginBottom="20dp"
+            android:background="@color/icon_back"
+            android:src="@mipmap/ic_splash" />
+
+        <ImageView
+            android:id="@+id/textIcon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_below="@id/icon"
+            android:layout_alignParentBottom="false"
+            android:background="@android:color/transparent"
+            android:backgroundTint="@android:color/transparent"
+            android:src="@mipmap/ic_text" />
+
+
+    </RelativeLayout>
+
+    <!--
+    <ImageView
+        android:id="@+id/logo_main"
+        android:layout_width="180dp"
+        android:layout_height="120dp"
+        android:layout_alignParentTop="false"
+        android:layout_below="@id/icon"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="false"
+        android:src="@drawable/logo_main"
+        android:contentDescription="@string/smartime_icon_description" />
+        -->
+
+</RelativeLayout>

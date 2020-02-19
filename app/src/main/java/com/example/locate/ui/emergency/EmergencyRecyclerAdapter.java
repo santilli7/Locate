@@ -53,11 +53,17 @@ class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         emergencyViewHolder.myTextView.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark));
 
         if (emergency.getPriority().equals("h")) {
-            emergencyViewHolder.priorityButton.setImageResource(R.drawable.high_priority);
+            emergencyViewHolder.priorityButton.setImageResource(R.drawable.round_gps_fixed_24);
+            emergencyViewHolder.priorityButton.setColorFilter(context.getResources().getColor(R.color.highPriority));
+
         } else if (emergency.getPriority().equals("u")) {
-            emergencyViewHolder.priorityButton.setImageResource(R.drawable.urgent_priority);
+            emergencyViewHolder.priorityButton.setImageResource(R.drawable.round_gps_fixed_24);
+            emergencyViewHolder.priorityButton.setColorFilter(context.getResources().getColor(R.color.urgentPriority));
+
         } else if (emergency.getPriority().equals("d")) {
-            emergencyViewHolder.priorityButton.setImageResource(R.drawable.discrete_priority);
+            emergencyViewHolder.priorityButton.setImageResource(R.drawable.round_gps_fixed_24);
+            emergencyViewHolder.priorityButton.setColorFilter(context.getResources().getColor(R.color.discretePriority));
+
         }
 
         emergencyViewHolder.materialButton.setOnClickListener(new View.OnClickListener() {

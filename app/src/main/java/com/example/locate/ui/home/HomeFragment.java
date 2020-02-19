@@ -112,6 +112,16 @@ public class HomeFragment extends Fragment {
     };
     private HomeViewModel homeViewModel;
 
+    private final BroadcastReceiver connectService = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            //System.out.println("Stop Receiver");
+            btnStartStop.setText(getContext().getResources().getString(R.string.home_stop_monitoring));
+            btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.discretePriority));
+
+        }
+    };
     private final BroadcastReceiver stopService = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -155,7 +165,7 @@ public class HomeFragment extends Fragment {
                         Intent startIntent = new Intent(getContext(), BluetoothLeService.class);
                         startIntent.setAction(BluetoothLeService.StartForegroundAction);
                         getActivity().startService(startIntent);
-                        btnStartStop.setText(getContext().getResources().getString(R.string.home_stop_monitoring));
+                        btnStartStop.setText(getContext().getResources().getString(R.string.connecting));
                         btnStartStop.setBackgroundColor(Color.rgb(191, 54, 12));
 
 
@@ -179,6 +189,9 @@ public class HomeFragment extends Fragment {
             btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
         } else if (BluetoothLeService.getState().equals(BLEState.RUNNING)) {
             btnStartStop.setText(getContext().getResources().getString(R.string.home_stop_monitoring));
+            btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.discretePriority));
+        } else if (BluetoothLeService.getState().equals(BLEState.CONNECTING)) {
+            btnStartStop.setText(getContext().getResources().getString(R.string.connecting));
             btnStartStop.setBackgroundColor(Color.rgb(191, 54, 12));
         }
 
@@ -257,6 +270,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        getActivity().unregisterReceiver(connectService);
         getActivity().unregisterReceiver(stopService);
         System.out.println("UnregisterReceiver");
     }
@@ -280,12 +294,16 @@ public class HomeFragment extends Fragment {
         mapview.onResume();
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
+        getActivity().registerReceiver(connectService, new IntentFilter("connected"));
         getActivity().registerReceiver(stopService, new IntentFilter("stop_home"));
         if (BluetoothLeService.getState().equals(BLEState.STOPPED)) {
             btnStartStop.setText(getContext().getResources().getString(R.string.home_start_monitoring));
             btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
         } else if (BluetoothLeService.getState().equals(BLEState.RUNNING)) {
             btnStartStop.setText(getContext().getResources().getString(R.string.home_stop_monitoring));
+            btnStartStop.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.discretePriority));
+        } else if (BluetoothLeService.getState().equals(BLEState.CONNECTING)) {
+            btnStartStop.setText(getContext().getResources().getString(R.string.connecting));
             btnStartStop.setBackgroundColor(Color.rgb(191, 54, 12));
         }
 

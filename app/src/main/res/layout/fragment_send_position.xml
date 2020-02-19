@@ -11,6 +11,7 @@
         android:layout_height="wrap_content"
 
         android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
         app:boxBackgroundColor="@color/cast_expanded_controller_text_color"
         app:boxBackgroundMode="outline"
         app:boxStrokeColor="@color/colorPrimary"
@@ -19,9 +20,9 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
+            <!--
             <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/spinnerEmergency"
+
                 android:layout_width="150dp"
                 android:layout_height="40dp"
                 android:layout_centerHorizontal="true"
@@ -29,15 +30,33 @@
                 android:layout_marginBottom="40dp"
                 android:entries="@array/priority"
                 android:gravity="center_horizontal"
-                android:spinnerMode="dialog" />
+                android:spinnerMode="dialog" />-->
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/spinnerEmergency"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="220dp"
+                android:layout_height="60dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="40dp"
+                android:hint="Priority">
+
+                <AutoCompleteTextView
+                    android:id="@+id/filled_exposed_dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:editable="false" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/il_latitude"
                 style="@style/PositionTheme"
                 android:layout_width="350dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/il_latitude"
-                android:layout_gravity="center_horizontal"
                 android:layout_below="@id/spinnerEmergency"
+                android:layout_gravity="center_horizontal"
                 app:boxBackgroundColor="@color/cast_expanded_controller_text_color"
                 app:boxBackgroundMode="outline"
                 app:hintEnabled="true">
@@ -49,6 +68,10 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/spinnerEmergency"
                     android:layout_marginBottom="30dp"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
                     android:fontFamily="@font/roboto_medium"
                     android:hint="@string/et_latitude"
                     android:inputType="numberDecimal"
@@ -74,10 +97,14 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_longitude"
+                    style="@style/PositionTheme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/PositionTheme"
                     android:layout_marginBottom="30dp"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
                     android:fontFamily="@font/roboto_medium"
                     android:hint="@string/et_longitude"
                     android:inputType="numberDecimal"
@@ -91,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/il_longitude"
                 android:layout_alignRight="@id/il_longitude"
-                android:text="Invia"
+                android:text="@string/send_position"
                 android:textAlignment="center"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
         </RelativeLayout>

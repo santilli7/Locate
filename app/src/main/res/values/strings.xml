@@ -57,4 +57,5 @@
     <string name="error_connect">First connect with your ble device</string>
     <string name="connecting">Connecting...</string>
     <string name="send_position">Send</string>
+    <string name="devices_not_found">No devices found</string>
 </resources>

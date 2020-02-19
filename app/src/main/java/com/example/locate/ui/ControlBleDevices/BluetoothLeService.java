@@ -48,6 +48,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.locate.MainActivity;
 import com.example.locate.R;
@@ -379,6 +380,11 @@ public class BluetoothLeService extends Service {
                             startForeground(101, notification);
                         }
                         System.out.println(mConnected);
+                    } else {
+                        Toast.makeText(getApplicationContext(), getApplicationContext().getResources().getString(R.string.devices_not_found), Toast.LENGTH_SHORT).show();
+                        state = BLEState.STOPPED;
+                        Intent stopUIIntent = new Intent("stop_home");
+                        sendBroadcast(stopUIIntent);
                     }
 
                 }

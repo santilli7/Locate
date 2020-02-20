@@ -87,6 +87,8 @@ public class SendPositionFragment extends Fragment implements OnMapReadyCallback
                     if (strPriority != null) {
                         if (BluetoothLeService.getInstance().sendDataToBLE(position, strPriority)) {
                             Navigation.findNavController(getView()).navigate(R.id.action_nav_send_position_to_nav_home, posBundle);
+                        } else {
+                            Toast.makeText(getContext(), getContext().getResources().getString(R.string.not_send_error), Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Toast.makeText(getContext(), R.string.error_priority, Toast.LENGTH_SHORT).show();

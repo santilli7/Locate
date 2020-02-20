@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/help_bottom"
+        android:icon="@drawable/baseline_help_outline_24"
+        android:iconTint="@color/cardview_light_background"
+        tools:showAsAction="ifRoom"
+        tools:targetApi="o"
+        tools:ignore="PrivateResource"
+        android:title="" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:title=""
+        tools:showAsAction="never" />
 
 </menu>

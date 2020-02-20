@@ -41,6 +41,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
@@ -57,6 +59,7 @@ import com.example.locate.ui.emergency.Emergency;
 import com.example.locate.ui.home.BLEState;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +80,7 @@ public class BluetoothLeService extends Service {
             StopForegroundAction = "com.truiton.foregroundservice.action.stopforeground";
     private static final long SCAN_PERIOD = 10000;
 
-    private Emergency emergency;
+    private Emergency emergency, new_emergency;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private String mBluetoothDeviceAddress;
@@ -113,7 +116,8 @@ public class BluetoothLeService extends Service {
     private StopServiceReceiver mStopReceiver;
     private boolean writestatus;
     private ArrayList<LatLng> positions;
-
+    private TinyDB tinyDB;
+    private ArrayList<Object> listEmergency = new ArrayList<>();
 
     public final static UUID UUID_HM_RX_TX =
             UUID.fromString(SampleGattAttributes.HM_RX_TX);
@@ -195,6 +199,14 @@ public class BluetoothLeService extends Service {
 
     };
 
+    private final BroadcastReceiver addEmergencyService = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            //System.out.println("Stop Receiver");
+        }
+    };
+
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
@@ -218,7 +230,9 @@ public class BluetoothLeService extends Service {
                 displayGattServices(getSupportedGattServices());
             } else if (BluetoothLeService.EXTRA_DATA.equals(action)) {
                 //System.out.println(intent.getParcelableExtra("positions") + " " + intent.getStringExtra("priority"));
-                if (intent.getStringExtra("priority") != null) {
+                if (intent.getStringExtra("ack") != null) {
+                    notifyAck();
+                } else if (intent.getStringExtra("priority") != null) {
                     LatLng latLng = intent.getParcelableExtra("positions");
                     Emergency emergency = new Emergency();
                     emergency.setLatitude(latLng.latitude);
@@ -226,7 +240,12 @@ public class BluetoothLeService extends Service {
                     emergency.setPriority(intent.getStringExtra("priority"));
 
                     System.out.println(emergency.getLatitude() + " " + emergency.getLongitude() + " " + emergency.getPriority());
-                    notifyEmergency(emergency);
+                    if (addEmergency(emergency)) {
+                        notifyEmergency();
+                    } else {
+                        System.out.println("emergency not added");
+                    }
+
                 }
 
                 /*
@@ -240,6 +259,38 @@ public class BluetoothLeService extends Service {
         }
     };
 
+    private boolean addEmergency(Emergency new_emergency) {
+        tinyDB = new TinyDB(getApplicationContext());
+        listEmergency = tinyDB.getListObject("list", Emergency.class);
+
+
+        Geocoder gc = new Geocoder(getApplicationContext());
+        if (gc.isPresent()) {
+            ArrayList<Address> list = new ArrayList<>();
+
+            try {
+                list = (ArrayList<Address>) gc.getFromLocation(new_emergency.getLatitude(), new_emergency.getLongitude(), 1);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            if (list.size() > 0) {
+                if (list.get(0).getAddressLine(0) != null)
+                    new_emergency.setAddress(String.valueOf(list.get(0).getLocality()));
+            } else {
+                new_emergency.setAddress("Unknown");
+            }
+        }
+
+        listEmergency.add(new_emergency);
+
+        tinyDB.putListObject("list", listEmergency);
+
+        return true;
+
+    }
+
+
     private ScanCallback mLeScanCallback =
             new ScanCallback() {
                 @Override
@@ -248,6 +299,7 @@ public class BluetoothLeService extends Service {
                     super.onScanResult(callbackType, result);
                 }
             };
+
 
 
     @Override
@@ -268,6 +320,7 @@ public class BluetoothLeService extends Service {
             state = BLEState.STOPPED;
             if (null != mGattUpdateReceiver) unregisterReceiver(mGattUpdateReceiver);
             if (null != mStopReceiver) unregisterReceiver(mStopReceiver);
+            if (null != addEmergencyService) unregisterReceiver(addEmergencyService);
             System.out.println("Stop receiver" + state);
             if (bleDevice != null) {
                 bleDevice = null;
@@ -285,6 +338,7 @@ public class BluetoothLeService extends Service {
             initialize();
             registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
             registerReceiver(mStopReceiver, new IntentFilter("stop_receiver"));
+            registerReceiver(addEmergencyService, new IntentFilter("add_emergency"));
             filters = new ArrayList<>();
             System.out.println("On Start Command");
 
@@ -320,8 +374,10 @@ public class BluetoothLeService extends Service {
             final StringBuilder stringBuilder = new StringBuilder(data.length);
             //intent.putExtra(EXTRA_DATA, String.format("%s", new String(data)));
             String s = new String(data);
-
-            if (s.length() == 20) {
+            System.out.println(s);
+            if (s.equals("ack")) {
+                intent.putExtra("ack", s);
+            } else if (s.length() == 20) {
                 strToLatLng = manageData(s);
 
             } else {
@@ -418,6 +474,31 @@ public class BluetoothLeService extends Service {
 
     public static BluetoothDevice getDevice() {
         return bleDevice;
+    }
+
+    public boolean sendAckToBLE() {
+        /*
+        Log.d(TAG, "Sending result=" + String.valueOf(position.latitude));
+        System.out.println(String.valueOf(position.latitude).getBytes() + "Latitude");
+        String strPriority = setPriority(priority);
+        String latstr = String.valueOf(position.latitude);
+        String lngstr = String.valueOf(position.longitude);
+        String positionstr = latstr + lngstr + strPriority;
+        final byte[] tx = positionstr.getBytes();*/
+        if (mConnected) {
+            if (characteristicTX != null) {
+                characteristicTX.setValue("ack");
+                writestatus = writeCharacteristic(characteristicTX);
+                setCharacteristicNotification(characteristicRX, true);
+            }
+            if (writestatus) {
+                return true;
+            }
+            return false;
+
+        }
+        return false;
+
     }
 
     public class LocalBinder extends Binder {
@@ -662,11 +743,7 @@ public class BluetoothLeService extends Service {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void notifyEmergency(Emergency emergency) {
-        System.out.println("Notification");
-
-        posBundle = new Bundle();
-        posBundle.putParcelable("emergency", emergency);
+    private void notifyAck() {
         CharSequence channelName = "My Channel";
         int importance = NotificationManager.IMPORTANCE_HIGH;
 
@@ -683,8 +760,42 @@ public class BluetoothLeService extends Service {
         PendingIntent pendingIntent = navDeepLinkBuilder
                 .setComponentName(MainActivity.class)
                 .setGraph(R.navigation.mobile_navigation)
+                .setDestination(R.id.nav_home)
+                .createPendingIntent();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default");
+        builder.setContentTitle(getString(R.string.app_name));
+        builder.setContentText(getString(R.string.ack_received));
+        builder.setSmallIcon(R.drawable.ic_notification);
+        builder.setContentIntent(pendingIntent);
+        builder.setAutoCancel(true);
+        Notification notification = builder.build();
+        notificationManager.notify(0, notification);
+        System.out.println("Notification" + notification);
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void notifyEmergency() {
+        System.out.println("Notification");
+
+
+        CharSequence channelName = "My Channel";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        NotificationChannel notificationChannel = new NotificationChannel("default", channelName, importance);
+        notificationChannel.enableLights(true);
+        notificationChannel.setLightColor(Color.BLUE);
+        notificationChannel.enableVibration(true);
+        notificationChannel.setVibrationPattern(new long[]{1000, 2000});
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+        notificationManager.createNotificationChannel(notificationChannel);
+
+        NavDeepLinkBuilder navDeepLinkBuilder = new NavDeepLinkBuilder(this);
+        PendingIntent pendingIntent = navDeepLinkBuilder
+                .setComponentName(MainActivity.class)
+                .setGraph(R.navigation.mobile_navigation)
                 .setDestination(R.id.nav_emergency)
-                .setArguments(posBundle)
                 .createPendingIntent();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default");
         builder.setContentTitle(getString(R.string.app_name));

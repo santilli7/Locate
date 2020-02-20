@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.locate.R;
 import com.example.locate.TinyDB;
+import com.example.locate.ui.ControlBleDevices.BluetoothLeService;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private String priority;
     private TinyDB tinyDB;
     private Emergency emergency;
+    private boolean status;
 
     EmergencyRecyclerAdapter(Context context, ArrayList<Object> listEmergency) {
         this.context = context;
@@ -71,6 +74,26 @@ class EmergencyRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             public void onClick(View v) {
                 Navigation.findNavController(v).navigate(R.id.action_nav_emergency_to_nav_map, bundle);
 
+            }
+        });
+
+        emergencyViewHolder.accept.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (BluetoothLeService.getInstance() != null && BluetoothLeService.getDevice() != null) {
+                    if (BluetoothLeService.getInstance().sendAckToBLE()) {
+                        Toast.makeText(context, context.getResources().getString(R.string.accept), Toast.LENGTH_SHORT).show();
+                        listEmergency.remove(position);
+                        notifyItemRemoved(position);
+                        notifyItemRangeChanged(position, listEmergency.size());
+                        tinyDB = new TinyDB(context);
+                        tinyDB.putListObject("list", listEmergency);
+                    } else {
+                        Toast.makeText(context, context.getResources().getString(R.string.not_send_error), Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(context, context.getResources().getString(R.string.error_connect), Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

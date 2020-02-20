@@ -20,6 +20,7 @@
 
     </style>
 
+
     <style name="PositionTheme" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxStrokeColor">@color/colorPrimary</item>
         <item name="boxStrokeWidth">1dp</item>

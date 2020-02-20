@@ -58,4 +58,18 @@
     <string name="connecting">Connecting...</string>
     <string name="send_position">Send</string>
     <string name="devices_not_found">No devices found</string>
+    <string name="not_send_error">Message not send, try to reconnect to BLE device</string>
+    <string name="accept">Emergency Accepted</string>
+    <string name="new_emergency">New emergency</string>
+    <string name="ack_received">Someone is coming for help you !!</string>
+
+    <string name="tutorial_reply_notifications">Rispondi alle notifiche</string>
+    <string name="tutorial_my_activities">Inserisci le attività che svolgi regolarmente</string>
+    <string name="tutorial_my_activities_corpus">Nella sezione \"Le Mie Attività\" potrai inserire le attività che svolgi regolarmente, come andare in palestra, studiare o lavorare</string>
+    <string name="tutorial_end">Fine</string>
+    <string name="tutorial_turn_on_gps">Attiva il GPS</string>
+    <string name="tutorial_turn_on_gps_corpus">Attiva il gps per iniziare il monitoraggio automatico delle tue attività</string>
+    <string name="tutorial_check_timeline">Controlla la Timeline</string>
+    <string name="tutorial_check_timeline_corpus">La Timeline ti permette di terner traccia delle attività che hai svolto nel corso di ogni singola giornata!</string>
+
 </resources>
